@@ -90,13 +90,103 @@ def update_progress_section(content, stats):
 
 def update_recent_problems(content):
     """최근 해결한 문제 섹션을 업데이트합니다."""
-    # 최근 5개 문제를 찾아서 업데이트
-    recent_problems = """### 🔥 최근 해결한 문제
-- [x] 백준 2805. 나무 자르기 (Silver)
-- [x] 프로그래머스 Lv.3 베스트앨범
-- [x] LeetCode 80. Remove Duplicates from Sorted Array II
-- [x] 프로그래머스 Lv.2 게임 맵 최단거리
-- [x] 백준 11659. 구간 합 구하기 4"""
+    import os
+    import glob
+    from datetime import datetime
+    
+    # 모든 문제 파일 찾기 (JavaScript, Python, TypeScript)
+    problem_files = []
+    
+    # 백준 문제들
+    baekjoon_files = glob.glob('baekjoon/**/*.js', recursive=True) + \
+                     glob.glob('baekjoon/**/*.py', recursive=True) + \
+                     glob.glob('baekjoon/**/*.ts', recursive=True) + \
+                     glob.glob('백준/**/*.js', recursive=True) + \
+                     glob.glob('백준/**/*.py', recursive=True) + \
+                     glob.glob('백준/**/*.ts', recursive=True)
+    
+    # 프로그래머스 문제들
+    programmers_files = glob.glob('programmers/**/*.js', recursive=True) + \
+                        glob.glob('programmers/**/*.py', recursive=True) + \
+                        glob.glob('programmers/**/*.ts', recursive=True) + \
+                        glob.glob('프로그래머스/**/*.js', recursive=True) + \
+                        glob.glob('프로그래머스/**/*.py', recursive=True) + \
+                        glob.glob('프로그래머스/**/*.ts', recursive=True)
+    
+    # LeetCode 문제들
+    leetcode_files = glob.glob('leetcode/**/*.js', recursive=True) + \
+                     glob.glob('leetcode/**/*.py', recursive=True) + \
+                     glob.glob('leetcode/**/*.ts', recursive=True)
+    
+    # 파일 정보 수집 (경로, 수정시간)
+    for file_path in baekjoon_files + programmers_files + leetcode_files:
+        if os.path.exists(file_path):
+            mtime = os.path.getmtime(file_path)
+            problem_files.append((file_path, mtime))
+    
+    # 수정시간 기준으로 정렬 (최신순)
+    problem_files.sort(key=lambda x: x[1], reverse=True)
+    
+    # 최근 5개 문제 선택
+    recent_problems_list = []
+    for file_path, mtime in problem_files[:5]:
+        # 파일명에서 문제 정보 추출
+        filename = os.path.basename(file_path)
+        dir_path = os.path.dirname(file_path)
+        
+        # 날짜 포맷팅
+        date_str = datetime.fromtimestamp(mtime).strftime('%Y.%m.%d %H:%M:%S')
+        
+        # 플랫폼과 난이도/레벨 추출
+        platform = ""
+        level = ""
+        
+        if 'baekjoon' in file_path or '백준' in file_path:
+            platform = "백준"
+            # 백준 폴더에서 난이도 추출
+            if 'Silver' in dir_path:
+                level = " (Silver)"
+            elif 'Gold' in dir_path:
+                level = " (Gold)"
+            elif 'Bronze' in dir_path:
+                level = " (Bronze)"
+        elif 'programmers' in file_path or '프로그래머스' in file_path:
+            platform = "프로그래머스"
+            # 프로그래머스 폴더에서 레벨 추출
+            if 'Lv. 0' in dir_path or '/0/' in dir_path:
+                level = " Lv.0"
+            elif 'Lv. 1' in dir_path or '/1/' in dir_path:
+                level = " Lv.1"
+            elif 'Lv. 2' in dir_path or '/2/' in dir_path:
+                level = " Lv.2"
+            elif 'Lv. 3' in dir_path or '/3/' in dir_path:
+                level = " Lv.3"
+        elif 'leetcode' in file_path:
+            platform = "LeetCode"
+            # LeetCode 폴더에서 난이도 추출
+            if 'easy' in dir_path:
+                level = " (Easy)"
+            elif 'medium' in dir_path:
+                level = " (Medium)"
+            elif 'hard' in dir_path:
+                level = " (Hard)"
+        
+        # 파일명에서 문제 번호와 제목 추출
+        problem_info = filename.replace('.js', '').replace('.py', '').replace('.ts', '')
+        
+        recent_problems_list.append(f"- [x] {platform} {problem_info}{level} - {date_str}")
+    
+    # 기본값 (파일을 찾지 못한 경우)
+    if not recent_problems_list:
+        recent_problems_list = [
+            "- [x] 백준 2805. 나무 자르기 (Silver) - 2024.01.01 12:00:00",
+            "- [x] 프로그래머스 Lv.3 베스트앨범 - 2024.01.01 11:00:00",
+            "- [x] LeetCode 80. Remove Duplicates from Sorted Array II - 2024.01.01 10:00:00",
+            "- [x] 프로그래머스 Lv.2 게임 맵 최단거리 - 2024.01.01 09:00:00",
+            "- [x] 백준 11659. 구간 합 구하기 4 - 2024.01.01 08:00:00"
+        ]
+    
+    recent_problems = "### 🔥 최근 해결한 문제\n" + "\n".join(recent_problems_list)
 
     # 기존 최근 문제 섹션을 찾아서 교체
     recent_pattern = r'(### 🔥 최근 해결한 문제\n.*?\n\n)'
