@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install -g @actions/core
-          pip install requests
+          pip install requests pytz
 
       - name: Generate README statistics
         id: stats

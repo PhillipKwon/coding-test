@@ -92,7 +92,9 @@ def update_recent_problems(content):
     """최근 해결한 문제 섹션을 업데이트합니다."""
     import os
     import glob
+    import subprocess
     from datetime import datetime
+    import pytz
     
     # 모든 문제 파일 찾기 (JavaScript, Python, TypeScript)
     problem_files = []
@@ -118,24 +120,41 @@ def update_recent_problems(content):
                      glob.glob('leetcode/**/*.py', recursive=True) + \
                      glob.glob('leetcode/**/*.ts', recursive=True)
     
-    # 파일 정보 수집 (경로, 수정시간)
+    # 파일 정보 수집 (경로, 커밋시간)
     for file_path in baekjoon_files + programmers_files + leetcode_files:
         if os.path.exists(file_path):
-            mtime = os.path.getmtime(file_path)
-            problem_files.append((file_path, mtime))
+            try:
+                # git log에서 해당 파일의 최신 커밋 시간 가져오기
+                result = subprocess.run(
+                    ['git', 'log', '--follow', '--format=%at', '--', file_path],
+                    capture_output=True, text=True, cwd=os.getcwd()
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    # 첫 번째 커밋 시간 (가장 최신)
+                    commit_time = int(result.stdout.strip().split('\n')[0])
+                    problem_files.append((file_path, commit_time))
+                else:
+                    # git log가 실패하면 파일 수정시간 사용
+                    mtime = os.path.getmtime(file_path)
+                    problem_files.append((file_path, mtime))
+            except:
+                # 예외 발생 시 파일 수정시간 사용
+                mtime = os.path.getmtime(file_path)
+                problem_files.append((file_path, mtime))
     
-    # 수정시간 기준으로 정렬 (최신순)
+    # 커밋시간 기준으로 정렬 (최신순)
     problem_files.sort(key=lambda x: x[1], reverse=True)
     
     # 최근 5개 문제 선택
     recent_problems_list = []
-    for file_path, mtime in problem_files[:5]:
+    for file_path, commit_time in problem_files[:5]:
         # 파일명에서 문제 정보 추출
         filename = os.path.basename(file_path)
         dir_path = os.path.dirname(file_path)
         
-        # 날짜 포맷팅
-        date_str = datetime.fromtimestamp(mtime).strftime('%Y.%m.%d %H:%M:%S')
+        # 한국시간으로 변환
+        kst = pytz.timezone('Asia/Seoul')
+        date_str = datetime.fromtimestamp(commit_time, tz=pytz.UTC).astimezone(kst).strftime('%Y.%m.%d %H:%M:%S')
         
         # 플랫폼과 난이도/레벨 추출
         platform = ""
