@@ -123,23 +123,33 @@ def update_recent_problems(content):
     # 파일 정보 수집 (경로, 커밋시간)
     for file_path in baekjoon_files + programmers_files + leetcode_files:
         if os.path.exists(file_path):
-            try:
-                # git log에서 해당 파일의 최신 커밋 시간 가져오기
-                result = subprocess.run(
-                    ['git', 'log', '--follow', '--format=%at', '--', file_path],
-                    capture_output=True, text=True, cwd=os.getcwd()
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    # 첫 번째 커밋 시간 (가장 최신)
-                    commit_time = int(result.stdout.strip().split('\n')[0])
-                    print(f"✅ Git log 성공: {file_path} -> {commit_time}")
-                    problem_files.append((file_path, commit_time))
-                else:
-                    # git log가 실패하면 해당 파일 제외 (커밋되지 않은 파일)
-                    print(f"❌ Git log 실패, 파일 제외 (커밋되지 않음): {file_path}")
-            except Exception as e:
-                # 예외 발생 시 해당 파일 제외
-                print(f"❌ Git log 예외, 파일 제외: {file_path} (에러: {e})")
+            # GitHub Actions 환경인지 확인
+            is_github_actions = os.environ.get('GITHUB_ACTIONS') == 'true'
+            
+            if is_github_actions:
+                # GitHub Actions에서는 파일 수정시간 사용
+                mtime = os.path.getmtime(file_path)
+                print(f"🤖 GitHub Actions 환경, 파일 수정시간 사용: {file_path} -> {mtime}")
+                problem_files.append((file_path, mtime))
+            else:
+                # 로컬 환경에서는 git 커밋 시간 사용
+                try:
+                    # git log에서 해당 파일의 최신 커밋 시간 가져오기
+                    result = subprocess.run(
+                        ['git', 'log', '--follow', '--format=%at', '--', file_path],
+                        capture_output=True, text=True, cwd=os.getcwd()
+                    )
+                    if result.returncode == 0 and result.stdout.strip():
+                        # 첫 번째 커밋 시간 (가장 최신)
+                        commit_time = int(result.stdout.strip().split('\n')[0])
+                        print(f"✅ Git log 성공: {file_path} -> {commit_time}")
+                        problem_files.append((file_path, commit_time))
+                    else:
+                        # git log가 실패하면 해당 파일 제외 (커밋되지 않은 파일)
+                        print(f"❌ Git log 실패, 파일 제외 (커밋되지 않음): {file_path}")
+                except Exception as e:
+                    # 예외 발생 시 해당 파일 제외
+                    print(f"❌ Git log 예외, 파일 제외: {file_path} (에러: {e})")
     
     # 커밋시간 기준으로 정렬 (최신순)
     problem_files.sort(key=lambda x: x[1], reverse=True)
@@ -192,16 +202,24 @@ def update_recent_problems(content):
         # 파일명에서 문제 번호와 제목 추출
         problem_info = filename.replace('.js', '').replace('.py', '').replace('.ts', '')
         
-        recent_problems_list.append(f"- [x] {platform} {problem_info}{level}")
+        # 시간 포맷팅
+        if is_github_actions:
+            # GitHub Actions에서는 파일 수정시간 사용
+            formatted_time = datetime.fromtimestamp(commit_time, tz=pytz.UTC).astimezone(kst).strftime('%Y.%m.%d %H:%M:%S')
+        else:
+            # 로컬에서는 git 커밋 시간 사용
+            formatted_time = datetime.fromtimestamp(commit_time, tz=pytz.UTC).astimezone(kst).strftime('%Y.%m.%d %H:%M:%S')
+        
+        recent_problems_list.append(f"- [x] {platform} {problem_info}{level} ({formatted_time})")
     
     # 기본값 (파일을 찾지 못한 경우)
     if not recent_problems_list:
         recent_problems_list = [
-            "- [x] 백준 2805. 나무 자르기 (Silver)",
-            "- [x] 프로그래머스 Lv.3 베스트앨범",
-            "- [x] LeetCode 80. Remove Duplicates from Sorted Array II",
-            "- [x] 프로그래머스 Lv.2 게임 맵 최단거리",
-            "- [x] 백준 11659. 구간 합 구하기 4"
+            "- [x] 백준 2805. 나무 자르기 (Silver) (2024.12.20 15:30:00)",
+            "- [x] 프로그래머스 Lv.3 베스트앨범 (2024.12.19 14:25:00)",
+            "- [x] LeetCode 80. Remove Duplicates from Sorted Array II (2024.12.18 16:45:00)",
+            "- [x] 프로그래머스 Lv.2 게임 맵 최단거리 (2024.12.17 13:20:00)",
+            "- [x] 백준 11659. 구간 합 구하기 4 (2024.12.16 11:15:00)"
         ]
     
     recent_problems = "### 🔥 최근 해결한 문제\n" + "\n".join(recent_problems_list)
