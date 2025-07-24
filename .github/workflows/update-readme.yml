@@ -92,9 +92,9 @@ jobs:
 
           echo "Statistics calculated successfully!"
 
-          - name: Update README
-      run: |
-        python3 scripts/update_readme.py \
+      - name: Update README
+        run: |
+          python3 scripts/update_readme.py \
             --baekjoon-total ${{ steps.stats.outputs.baekjoon_total }} \
             --baekjoon-js ${{ steps.stats.outputs.baekjoon_js }} \
             --baekjoon-py ${{ steps.stats.outputs.baekjoon_py }} \
