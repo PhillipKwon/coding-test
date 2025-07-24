@@ -12,38 +12,60 @@ from pathlib import Path
 
 def update_statistics_table(content, stats):
     """문제 통계 테이블을 업데이트합니다."""
-    table_pattern = r'(\| 플랫폼 \| 총 문제 수 \| JavaScript \| Python \| TypeScript \|\n\|--------\|------------\|------------\|--------\|------------\|\n)(.*?)(\n\n)'
+    # 정확한 테이블 위치를 찾아서 교체
+    lines = content.split('\n')
     
-    new_table = f"""| 플랫폼 | 총 문제 수 | JavaScript | Python | TypeScript |
-|--------|------------|------------|--------|------------|
-| **백준** | {stats['baekjoon_total']} | {stats['baekjoon_js']} | {stats['baekjoon_py']} | {stats['baekjoon_ts']} |
-| **프로그래머스** | {stats['programmers_total']} | {stats['programmers_js']} | {stats['programmers_py']} | {stats['programmers_ts']} |
-| **LeetCode** | {stats['leetcode_total']} | {stats['leetcode_js']} | {stats['leetcode_py']} | {stats['leetcode_ts']} |
-| **HackerRank** | 0 | 0 | 0 | 0 |"""
+    # 문제 통계 섹션 찾기
+    start_idx = None
+    end_idx = None
     
-    return re.sub(table_pattern, r'\1' + new_table + r'\3', content, flags=re.DOTALL)
+    for i, line in enumerate(lines):
+        if line.strip() == '## 📊 문제 통계':
+            start_idx = i
+        elif start_idx is not None and line.strip() == '---':
+            end_idx = i
+            break
+    
+    if start_idx is not None and end_idx is not None:
+        print(f"✅ 문제 통계 섹션 찾음: {start_idx} ~ {end_idx}")
+        
+        # 새로운 테이블 생성
+        new_table = f"""| 플랫폼           | 총 문제 수 | JavaScript | Python | TypeScript |
+| ---------------- | ---------- | ---------- | ------ | ---------- |
+| **백준**         | {stats['baekjoon_total']}          | {stats['baekjoon_js']}          | {stats['baekjoon_py']}      | {stats['baekjoon_ts']}          |
+| **프로그래머스** | {stats['programmers_total']}         | {stats['programmers_js']}         | {stats['programmers_py']}     | {stats['programmers_ts']}          |
+| **LeetCode**     | {stats['leetcode_total']}          | {stats['leetcode_js']}          | {stats['leetcode_py']}      | {stats['leetcode_ts']}          |
+| **HackerRank**   | 0          | 0          | 0      | 0          |"""
+        
+        # 섹션 교체
+        new_lines = lines[:start_idx + 2] + [new_table] + lines[end_idx:]
+        print(f"새로운 통계: 백준={stats['baekjoon_total']}, 프로그래머스={stats['programmers_total']}, LeetCode={stats['leetcode_total']}")
+        return '\n'.join(new_lines)
+    else:
+        print(f"❌ 문제 통계 섹션을 찾을 수 없음")
+        return content
 
 
 def update_progress_section(content, stats):
     """진행 상황 섹션을 업데이트합니다."""
     # 프로그래머스 레벨별 진행도
     programmers_progress = f"""### 프로그래머스 레벨별 진행도
-- **Level 0**: ✅ 완료 ({stats['programmers_lv0']}문제)
-- **Level 1**: ✅ 완료 ({stats['programmers_lv1']}문제)  
-- **Level 2**: 🔄 진행 중 ({stats['programmers_lv2']}문제)
-- **Level 3**: 🔄 진행 중 ({stats['programmers_lv3']}문제)"""
+- **Level 0**: ({stats['programmers_lv0']}문제)
+- **Level 1**: ({stats['programmers_lv1']}문제)  
+- **Level 2**: ({stats['programmers_lv2']}문제)
+- **Level 3**: ({stats['programmers_lv3']}문제)"""
 
     # LeetCode 난이도별 진행도
     leetcode_progress = f"""### LeetCode 난이도별 진행도
-- **Easy**: 🔄 진행 중 ({stats['leetcode_easy']}문제)
-- **Medium**: 🔄 진행 중 ({stats['leetcode_medium']}문제)
-- **Hard**: 📝 계획 중 ({stats['leetcode_hard']}문제)"""
+- **Easy**: ({stats['leetcode_easy']}문제)
+- **Medium**: ({stats['leetcode_medium']}문제)
+- **Hard**: ({stats['leetcode_hard']}문제)"""
 
-    # 백준 난이도별 진행도 (기본값)
-    baekjoon_progress = """### 백준 난이도별 진행도
-- **Bronze**: 🔄 진행 중
-- **Silver**: 🔄 진행 중
-- **Gold**: 📝 계획 중"""
+    # 백준 난이도별 진행도 (기본값 - 나중에 GitHub Actions에서 계산)
+    baekjoon_progress = f"""### 백준 난이도별 진행도
+- **Bronze**: ({stats['baekjoon_bronze']}문제)
+- **Silver**: ({stats['baekjoon_silver']}문제)
+- **Gold**: ({stats['baekjoon_gold']}문제)"""
 
     progress_section = f"""## 📈 진행 상황
 
@@ -161,6 +183,10 @@ def main():
     parser.add_argument('--leetcode-medium', type=int, default=0)
     parser.add_argument('--leetcode-hard', type=int, default=0)
     
+    parser.add_argument('--baekjoon-bronze', type=int, default=0)
+    parser.add_argument('--baekjoon-silver', type=int, default=0)
+    parser.add_argument('--baekjoon-gold', type=int, default=0)
+    
     args = parser.parse_args()
     
     # 통계 데이터 구성
@@ -184,6 +210,9 @@ def main():
         'leetcode_easy': args.leetcode_easy,
         'leetcode_medium': args.leetcode_medium,
         'leetcode_hard': args.leetcode_hard,
+        'baekjoon_bronze': args.baekjoon_bronze,
+        'baekjoon_silver': args.baekjoon_silver,
+        'baekjoon_gold': args.baekjoon_gold,
     }
     
     # README 파일 읽기

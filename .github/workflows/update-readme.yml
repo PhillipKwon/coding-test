@@ -70,6 +70,11 @@ jobs:
           LEETCODE_MEDIUM=$(find leetcode/medium -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
           LEETCODE_HARD=$(find leetcode/hard -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
 
+          # Count Baekjoon by difficulty
+          BAEKJOON_BRONZE=$(find 백준/Bronze baekjoon/Bronze -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          BAEKJOON_SILVER=$(find 백준/Silver baekjoon/Silver -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          BAEKJOON_GOLD=$(find 백준/Gold baekjoon/Gold -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+
           # Set outputs
           echo "baekjoon_total=$BAEKJOON_TOTAL" >> $GITHUB_OUTPUT
           echo "baekjoon_js=$BAEKJOON_JS" >> $GITHUB_OUTPUT
@@ -95,6 +100,10 @@ jobs:
           echo "leetcode_medium=$LEETCODE_MEDIUM" >> $GITHUB_OUTPUT
           echo "leetcode_hard=$LEETCODE_HARD" >> $GITHUB_OUTPUT
 
+          echo "baekjoon_bronze=$BAEKJOON_BRONZE" >> $GITHUB_OUTPUT
+          echo "baekjoon_silver=$BAEKJOON_SILVER" >> $GITHUB_OUTPUT
+          echo "baekjoon_gold=$BAEKJOON_GOLD" >> $GITHUB_OUTPUT
+
           echo "Statistics calculated successfully!"
 
       - name: Update README
@@ -118,7 +127,10 @@ jobs:
             --programmers-lv3 ${{ steps.stats.outputs.programmers_lv3 }} \
             --leetcode-easy ${{ steps.stats.outputs.leetcode_easy }} \
             --leetcode-medium ${{ steps.stats.outputs.leetcode_medium }} \
-            --leetcode-hard ${{ steps.stats.outputs.leetcode_hard }}
+            --leetcode-hard ${{ steps.stats.outputs.leetcode_hard }} \
+            --baekjoon-bronze ${{ steps.stats.outputs.baekjoon_bronze }} \
+            --baekjoon-silver ${{ steps.stats.outputs.baekjoon_silver }} \
+            --baekjoon-gold ${{ steps.stats.outputs.baekjoon_gold }}
 
       - name: Commit and push changes
         run: |
