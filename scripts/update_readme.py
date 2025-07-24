@@ -132,15 +132,14 @@ def update_recent_problems(content):
                 if result.returncode == 0 and result.stdout.strip():
                     # 첫 번째 커밋 시간 (가장 최신)
                     commit_time = int(result.stdout.strip().split('\n')[0])
+                    print(f"✅ Git log 성공: {file_path} -> {commit_time}")
                     problem_files.append((file_path, commit_time))
                 else:
-                    # git log가 실패하면 파일 수정시간 사용
-                    mtime = os.path.getmtime(file_path)
-                    problem_files.append((file_path, mtime))
-            except:
-                # 예외 발생 시 파일 수정시간 사용
-                mtime = os.path.getmtime(file_path)
-                problem_files.append((file_path, mtime))
+                    # git log가 실패하면 해당 파일 제외 (커밋되지 않은 파일)
+                    print(f"❌ Git log 실패, 파일 제외 (커밋되지 않음): {file_path}")
+            except Exception as e:
+                # 예외 발생 시 해당 파일 제외
+                print(f"❌ Git log 예외, 파일 제외: {file_path} (에러: {e})")
     
     # 커밋시간 기준으로 정렬 (최신순)
     problem_files.sort(key=lambda x: x[1], reverse=True)
@@ -193,16 +192,16 @@ def update_recent_problems(content):
         # 파일명에서 문제 번호와 제목 추출
         problem_info = filename.replace('.js', '').replace('.py', '').replace('.ts', '')
         
-        recent_problems_list.append(f"- [x] {platform} {problem_info}{level} - {date_str}")
+        recent_problems_list.append(f"- [x] {platform} {problem_info}{level}")
     
     # 기본값 (파일을 찾지 못한 경우)
     if not recent_problems_list:
         recent_problems_list = [
-            "- [x] 백준 2805. 나무 자르기 (Silver) - 2024.01.01 12:00:00",
-            "- [x] 프로그래머스 Lv.3 베스트앨범 - 2024.01.01 11:00:00",
-            "- [x] LeetCode 80. Remove Duplicates from Sorted Array II - 2024.01.01 10:00:00",
-            "- [x] 프로그래머스 Lv.2 게임 맵 최단거리 - 2024.01.01 09:00:00",
-            "- [x] 백준 11659. 구간 합 구하기 4 - 2024.01.01 08:00:00"
+            "- [x] 백준 2805. 나무 자르기 (Silver)",
+            "- [x] 프로그래머스 Lv.3 베스트앨범",
+            "- [x] LeetCode 80. Remove Duplicates from Sorted Array II",
+            "- [x] 프로그래머스 Lv.2 게임 맵 최단거리",
+            "- [x] 백준 11659. 구간 합 구하기 4"
         ]
     
     recent_problems = "### 🔥 최근 해결한 문제\n" + "\n".join(recent_problems_list)
