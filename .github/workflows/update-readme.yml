@@ -44,15 +44,15 @@ jobs:
         run: |
           echo "Calculating problem statistics..."
 
-          # Count problems by platform and language
-          BAEKJOON_JS=$(find baekjoon -name "*.js" | wc -l)
-          BAEKJOON_PY=$(find baekjoon -name "*.py" | wc -l)
-          BAEKJOON_TS=$(find baekjoon -name "*.ts" | wc -l)
+          # Count problems by platform and language (including Korean folders)
+          BAEKJOON_JS=$(find baekjoon 백준 -name "*.js" 2>/dev/null | wc -l)
+          BAEKJOON_PY=$(find baekjoon 백준 -name "*.py" 2>/dev/null | wc -l)
+          BAEKJOON_TS=$(find baekjoon 백준 -name "*.ts" 2>/dev/null | wc -l)
           BAEKJOON_TOTAL=$((BAEKJOON_JS + BAEKJOON_PY + BAEKJOON_TS))
 
-          PROGRAMMERS_JS=$(find programmers -name "*.js" | wc -l)
-          PROGRAMMERS_PY=$(find programmers -name "*.py" | wc -l)
-          PROGRAMMERS_TS=$(find programmers -name "*.ts" | wc -l)
+          PROGRAMMERS_JS=$(find programmers 프로그래머스 -name "*.js" 2>/dev/null | wc -l)
+          PROGRAMMERS_PY=$(find programmers 프로그래머스 -name "*.py" 2>/dev/null | wc -l)
+          PROGRAMMERS_TS=$(find programmers 프로그래머스 -name "*.ts" 2>/dev/null | wc -l)
           PROGRAMMERS_TOTAL=$((PROGRAMMERS_JS + PROGRAMMERS_PY + PROGRAMMERS_TS))
 
           LEETCODE_JS=$(find leetcode -name "*.js" | wc -l)
@@ -60,11 +60,11 @@ jobs:
           LEETCODE_TS=$(find leetcode -name "*.ts" | wc -l)
           LEETCODE_TOTAL=$((LEETCODE_JS + LEETCODE_PY + LEETCODE_TS))
 
-          # Count by level/difficulty
-          PROGRAMMERS_LV0=$(find programmers/Lv.\ 0 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
-          PROGRAMMERS_LV1=$(find programmers/Lv.\ 1 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
-          PROGRAMMERS_LV2=$(find programmers/Lv.\ 2 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
-          PROGRAMMERS_LV3=$(find programmers/Lv.\ 3 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
+          # Count by level/difficulty (including Korean folders)
+          PROGRAMMERS_LV0=$(find programmers/Lv.\ 0 프로그래머스/0 -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          PROGRAMMERS_LV1=$(find programmers/Lv.\ 1 프로그래머스/1 -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          PROGRAMMERS_LV2=$(find programmers/Lv.\ 2 프로그래머스/2 -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          PROGRAMMERS_LV3=$(find programmers/Lv.\ 3 프로그래머스/3 -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
 
           LEETCODE_EASY=$(find leetcode/easy -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
           LEETCODE_MEDIUM=$(find leetcode/medium -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
