@@ -1,0 +1,124 @@
+name: Update README
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "baekjoon/**"
+      - "programmers/**"
+      - "leetcode/**"
+      - "백준/**"
+      - "프로그래머스/**"
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          npm install -g @actions/core
+          pip install requests
+
+      - name: Generate README statistics
+        id: stats
+        run: |
+          echo "Calculating problem statistics..."
+
+          # Count problems by platform and language
+          BAEKJOON_JS=$(find baekjoon -name "*.js" | wc -l)
+          BAEKJOON_PY=$(find baekjoon -name "*.py" | wc -l)
+          BAEKJOON_TS=$(find baekjoon -name "*.ts" | wc -l)
+          BAEKJOON_TOTAL=$((BAEKJOON_JS + BAEKJOON_PY + BAEKJOON_TS))
+
+          PROGRAMMERS_JS=$(find programmers -name "*.js" | wc -l)
+          PROGRAMMERS_PY=$(find programmers -name "*.py" | wc -l)
+          PROGRAMMERS_TS=$(find programmers -name "*.ts" | wc -l)
+          PROGRAMMERS_TOTAL=$((PROGRAMMERS_JS + PROGRAMMERS_PY + PROGRAMMERS_TS))
+
+          LEETCODE_JS=$(find leetcode -name "*.js" | wc -l)
+          LEETCODE_PY=$(find leetcode -name "*.py" | wc -l)
+          LEETCODE_TS=$(find leetcode -name "*.ts" | wc -l)
+          LEETCODE_TOTAL=$((LEETCODE_JS + LEETCODE_PY + LEETCODE_TS))
+
+          # Count by level/difficulty
+          PROGRAMMERS_LV0=$(find programmers/Lv.\ 0 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
+          PROGRAMMERS_LV1=$(find programmers/Lv.\ 1 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
+          PROGRAMMERS_LV2=$(find programmers/Lv.\ 2 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
+          PROGRAMMERS_LV3=$(find programmers/Lv.\ 3 -name "*.js" -o -name "*.py" -o -name "*.ts" | wc -l)
+
+          LEETCODE_EASY=$(find leetcode/easy -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          LEETCODE_MEDIUM=$(find leetcode/medium -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+          LEETCODE_HARD=$(find leetcode/hard -name "*.js" -o -name "*.py" -o -name "*.ts" 2>/dev/null | wc -l)
+
+          # Set outputs
+          echo "baekjoon_total=$BAEKJOON_TOTAL" >> $GITHUB_OUTPUT
+          echo "baekjoon_js=$BAEKJOON_JS" >> $GITHUB_OUTPUT
+          echo "baekjoon_py=$BAEKJOON_PY" >> $GITHUB_OUTPUT
+          echo "baekjoon_ts=$BAEKJOON_TS" >> $GITHUB_OUTPUT
+
+          echo "programmers_total=$PROGRAMMERS_TOTAL" >> $GITHUB_OUTPUT
+          echo "programmers_js=$PROGRAMMERS_JS" >> $GITHUB_OUTPUT
+          echo "programmers_py=$PROGRAMMERS_PY" >> $GITHUB_OUTPUT
+          echo "programmers_ts=$PROGRAMMERS_TS" >> $GITHUB_OUTPUT
+
+          echo "leetcode_total=$LEETCODE_TOTAL" >> $GITHUB_OUTPUT
+          echo "leetcode_js=$LEETCODE_JS" >> $GITHUB_OUTPUT
+          echo "leetcode_py=$LEETCODE_PY" >> $GITHUB_OUTPUT
+          echo "leetcode_ts=$LEETCODE_TS" >> $GITHUB_OUTPUT
+
+          echo "programmers_lv0=$PROGRAMMERS_LV0" >> $GITHUB_OUTPUT
+          echo "programmers_lv1=$PROGRAMMERS_LV1" >> $GITHUB_OUTPUT
+          echo "programmers_lv2=$PROGRAMMERS_LV2" >> $GITHUB_OUTPUT
+          echo "programmers_lv3=$PROGRAMMERS_LV3" >> $GITHUB_OUTPUT
+
+          echo "leetcode_easy=$LEETCODE_EASY" >> $GITHUB_OUTPUT
+          echo "leetcode_medium=$LEETCODE_MEDIUM" >> $GITHUB_OUTPUT
+          echo "leetcode_hard=$LEETCODE_HARD" >> $GITHUB_OUTPUT
+
+          echo "Statistics calculated successfully!"
+
+          - name: Update README
+      run: |
+        python3 scripts/update_readme.py \
+            --baekjoon-total ${{ steps.stats.outputs.baekjoon_total }} \
+            --baekjoon-js ${{ steps.stats.outputs.baekjoon_js }} \
+            --baekjoon-py ${{ steps.stats.outputs.baekjoon_py }} \
+            --baekjoon-ts ${{ steps.stats.outputs.baekjoon_ts }} \
+            --programmers-total ${{ steps.stats.outputs.programmers_total }} \
+            --programmers-js ${{ steps.stats.outputs.programmers_js }} \
+            --programmers-py ${{ steps.stats.outputs.programmers_py }} \
+            --programmers-ts ${{ steps.stats.outputs.programmers_ts }} \
+            --leetcode-total ${{ steps.stats.outputs.leetcode_total }} \
+            --leetcode-js ${{ steps.stats.outputs.leetcode_js }} \
+            --leetcode-py ${{ steps.stats.outputs.leetcode_py }} \
+            --leetcode-ts ${{ steps.stats.outputs.leetcode_ts }} \
+            --programmers-lv0 ${{ steps.stats.outputs.programmers_lv0 }} \
+            --programmers-lv1 ${{ steps.stats.outputs.programmers_lv1 }} \
+            --programmers-lv2 ${{ steps.stats.outputs.programmers_lv2 }} \
+            --programmers-lv3 ${{ steps.stats.outputs.programmers_lv3 }} \
+            --leetcode-easy ${{ steps.stats.outputs.leetcode_easy }} \
+            --leetcode-medium ${{ steps.stats.outputs.leetcode_medium }} \
+            --leetcode-hard ${{ steps.stats.outputs.leetcode_hard }}
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "🤖 Auto-update README statistics"
+          git push
