@@ -202,13 +202,8 @@ def update_recent_problems(content):
         # 파일명에서 문제 번호와 제목 추출
         problem_info = filename.replace('.js', '').replace('.py', '').replace('.ts', '')
         
-        # 시간 포맷팅
-        if is_github_actions:
-            # GitHub Actions에서는 파일 수정시간 사용
-            formatted_time = datetime.fromtimestamp(commit_time, tz=pytz.UTC).astimezone(kst).strftime('%Y.%m.%d %H:%M:%S')
-        else:
-            # 로컬에서는 git 커밋 시간 사용
-            formatted_time = datetime.fromtimestamp(commit_time, tz=pytz.UTC).astimezone(kst).strftime('%Y.%m.%d %H:%M:%S')
+        # 시간 포맷팅 (항상 git 커밋 시간 사용)
+        formatted_time = datetime.fromtimestamp(commit_time, tz=pytz.UTC).astimezone(kst).strftime('%Y.%m.%d %H:%M:%S')
         
         recent_problems_list.append(f"- [x] {platform} {problem_info}{level} ({formatted_time})")
     
