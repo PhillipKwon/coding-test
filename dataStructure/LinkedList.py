@@ -48,15 +48,56 @@ class LinkedList:
             prev = current
             current = current.next
 
+    def insert_at_index(self, index, val):
+        if index < 0:
+            return
+        
+        # index가 0이면 prepend와 같음
+        if index == 0:
+            self.prepend(val)
+            return
+        
+        # 삽입할 위치의 이전 노드 찾기
+        current = self.head
+        for i in range(index - 1):
+            if current is None:
+                print("Index out of range")
+                return
+            current = current.next
+        
+        if current is None:
+            print("Index out of range")
+            return
+        
+        # 새 노드 생성 및 삽입
+        new_node = ListNode(val)
+        new_node.next = current.next
+        current.next = new_node
+
+    def size(self):
+        cnt = 0
+        current = self.head
+        while current is not None:
+            cnt += 1
+            current = current.next
+        return cnt
+
 # 테스트 코드
 if __name__ == "__main__":
     ll = LinkedList()
+    print(ll.size())
     ll.append(3)
     ll.prepend(2)
     ll.append(4)
     ll.prepend(1)
     ll.append(5)
     ll.display()
-    ll.delete(5)
+    ll.insert_at_index(1, 10)
     ll.display()
+    print(ll.size())
+
+    ll.delete(10)
+    ll.display()
+    ll.insert_at_index(100, 100)
+    print(ll.size())
 
